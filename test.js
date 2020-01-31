@@ -8,7 +8,7 @@ var mqtt = require('mqtt')
 var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
-var protocolDecoder = require('../lib/protocol-decoder')
+var protocolDecoder = require('./lib/protocol-decoder')
 
 // test ipAddress property presence when trustProxy is enabled
 test('tcp clients have access to the ipAddress from the socket', function (t) {
