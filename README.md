@@ -6,6 +6,7 @@ Protocol decoder for Aedes MQTT Broker
 
 The purpose of this module is to be used inside [aedes](https://github.com/moscajs/aedes) `decodeProtocol` hook, which is called when aedes instance receives a first valid buffer from client ( before CONNECT packet). The client object state is in default and its connected state is false. 
 The function extract socket details and if aedes `trustProxy` option is set to true, it will first parse http headers (x-real-ip | x-forwarded-for) and proxy protocol (v1 and v2) to retrieve information in client.connDetails.
+
 The function `protocolDecoder` returns [ConnectionDetails](./types/index.d.ts), if the object contains data property, it will be parsed as an mqtt-packet.
 
 ## Install
