@@ -8,6 +8,8 @@
 [![Coverage Status](https://coveralls.io/repos/moscajs/aedes-protocol-decoder/badge.svg?branch=master&service=github)](https://coveralls.io/github/moscajs/aedes-protocol-decoder?branch=master)
 [![NPM version](https://img.shields.io/npm/v/aedes-protocol-decoder.svg?style=flat)](https://www.npmjs.com/package/aedes-protocol-decoder)
 [![NPM downloads](https://img.shields.io/npm/dm/aedes-protocol-decoder.svg?style=flat)](https://www.npmjs.com/package/aedes-protocol-decoder)
+
+
 [![js-standard-style](https://cdn.rawgit.com/feross/standard/master/badge.svg)](https://github.com/feross/standard)
 
 Protocol decoder for Aedes MQTT Broker
