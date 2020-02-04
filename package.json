@@ -51,7 +51,17 @@
     "decoder",
     "parser"
   ],
-  "author": "",
+  "author": "Get Large <https://github.com/getlarge>",
+  "contributors": [
+    {
+      "name": "Get Large",
+      "url": "https://github.com/getlarge"
+    },
+    {
+      "name": "Daniel Lando",
+      "url": "https://github.com/robertsLando"
+    }
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^12.12.25",
