@@ -1,5 +1,6 @@
-var protocolDecoder = require('./lib/protocol-decoder')
+var { extractSocketDetails, protocolDecoder } = require('./lib/protocol-decoder')
 
 module.exports = {
+  extractSocketDetails,
   protocolDecoder
 }
