@@ -7,9 +7,8 @@ var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
 var { createServer } = require('aedes-server-factory')
-var { extractSocketDetails, protocolDecoder } = require('./lib/protocol-decoder')
+var { extractSocketDetails, protocolDecoder } = require('./index')
 
-// test ipAddress property presence when trustProxy is enabled
 test('tcp clients have access to the ipAddress from the socket', function (t) {
   t.plan(2)
 
@@ -361,18 +360,22 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
   var broker = aedes({
     preConnect: function (client, packet, done) {
       if (client.connDetails.data) {
-        var buf = mqttPacket.generate(client.connDetails.data)
-        t.equal(buf.toString(), packet.toString())
+        const parser = mqttPacket.parser({ protocolVersion: 3 })
+        parser.on('packet', (parsedPacket) => {
+          t.equal(JSON.stringify(parsedPacket), JSON.stringify(packet))
+          setImmediate(finish)
+        })
+        parser.on('error', () => {
+          t.fail('no valid MQTT packet extracted from TCP buffer')
+          setImmediate(finish)
+        })
+        parser.parse(client.connDetails.data)
       } else {
         t.fail('no MQTT packet extracted from TCP buffer')
+        setImmediate(finish)
       }
       done(null, true)
     }
-  })
-
-  broker.on('clientDisconnect', function (client) {
-    // console.log('onClientDisconnect', client.id)
-    setImmediate(finish)
   })
 
   var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)

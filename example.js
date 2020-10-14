@@ -5,7 +5,7 @@ var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
 var { createServer } = require('aedes-server-factory')
-var { extractSocketDetails, protocolDecoder } = require('./lib/protocol-decoder')
+var { extractSocketDetails, protocolDecoder } = require('./index')
 
 var brokerPort = 4883
 
