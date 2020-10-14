@@ -4,7 +4,8 @@ var aedes = require('aedes')
 var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
-var protocolDecoder = require('./lib/protocol-decoder')
+var { createServer } = require('aedes-server-factory')
+var { extractSocketDetails, protocolDecoder } = require('./lib/protocol-decoder')
 
 var brokerPort = 4883
 
@@ -119,11 +120,7 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
 
 function startAedes () {
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       console.log('Aedes preConnect check client ip:', client.connDetails)
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
@@ -134,7 +131,7 @@ function startAedes () {
     trustProxy: true
   })
 
-  var server = require('net').createServer(broker.handle)
+  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
 
   server.listen(brokerPort, function () {
     console.log('Aedes listening on :', server.address())

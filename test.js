@@ -2,13 +2,12 @@
 
 var test = require('tape').test
 var aedes = require('aedes')
-var http = require('http')
-var ws = require('websocket-stream')
 var mqtt = require('mqtt')
 var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
-var protocolDecoder = require('./lib/protocol-decoder')
+var { createServer } = require('aedes-server-factory')
+var { extractSocketDetails, protocolDecoder } = require('./lib/protocol-decoder')
 
 // test ipAddress property presence when trustProxy is enabled
 test('tcp clients have access to the ipAddress from the socket', function (t) {
@@ -16,11 +15,7 @@ test('tcp clients have access to the ipAddress from the socket', function (t) {
 
   var port = 4883
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client && client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal('::ffff:127.0.0.1', client.ip)
@@ -29,11 +24,10 @@ test('tcp clients have access to the ipAddress from the socket', function (t) {
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = net.createServer(broker.handle)
+  var server = createServer({ trustProxy: false, extractSocketDetails, protocolDecoder }, broker.handle)
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -78,11 +72,7 @@ test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', funct
   ).build()
 
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -91,11 +81,11 @@ test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', funct
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = net.createServer(broker.handle)
+  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -141,11 +131,7 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', funct
   ).build()
 
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -154,11 +140,11 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', funct
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = net.createServer(broker.handle)
+  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -207,11 +193,7 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
   ).build()
 
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -220,11 +202,10 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = net.createServer(broker.handle)
+  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -252,11 +233,7 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
   var clientIp = '::ffff:127.0.0.1'
   var port = 4883
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -265,15 +242,10 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = http.createServer()
-  ws.createServer({
-    server: server
-  }, broker.handle)
-
+  var server = createServer({ ws: true, trustProxy: false, extractSocketDetails, protocolDecoder }, broker.handle)
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -294,11 +266,7 @@ test('websocket proxied clients have access to the ipAddress from x-real-ip head
   var clientIp = '192.168.0.140'
   var port = 4883
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -307,14 +275,10 @@ test('websocket proxied clients have access to the ipAddress from x-real-ip head
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = http.createServer()
-  ws.createServer({
-    server: server
-  }, broker.handle)
+  var server = createServer({ ws: true, trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
 
   server.listen(port, function (err) {
     t.error(err, 'no error')
@@ -342,11 +306,7 @@ test('websocket proxied clients have access to the ipAddress from x-forwarded-fo
   var clientIp = '192.168.0.140'
   var port = 4883
   var broker = aedes({
-    decodeProtocol: function (client, buffer) {
-      var proto = protocolDecoder(client, buffer)
-      return proto
-    },
-    preConnect: function (client, done) {
+    preConnect: function (client, packet, done) {
       if (client.connDetails && client.connDetails.ipAddress) {
         client.ip = client.connDetails.ipAddress
         t.equal(clientIp, client.ip)
@@ -355,15 +315,10 @@ test('websocket proxied clients have access to the ipAddress from x-forwarded-fo
       }
       done(null, true)
       setImmediate(finish)
-    },
-    trustProxy: true
+    }
   })
 
-  var server = http.createServer()
-  ws.createServer({
-    server: server
-  }, broker.handle)
-
+  var server = createServer({ ws: true, trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -404,16 +359,15 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
   var dst = new proxyProtocol.Peer('127.0.0.1', proxyPort)
 
   var broker = aedes({
-    decodeProtocol: function (client, buff) {
-      var proto = protocolDecoder(client, buff)
-      if (proto.data) {
-        t.equal(proto.data.toString(), buf.toString())
+    preConnect: function (client, packet, done) {
+      if (client.connDetails.data) {
+        var buf = mqttPacket.generate(client.connDetails.data)
+        t.equal(buf.toString(), packet.toString())
       } else {
         t.fail('no MQTT packet extracted from TCP buffer')
       }
-      return proto
-    },
-    trustProxy: true
+      done(null, true)
+    }
   })
 
   broker.on('clientDisconnect', function (client) {
@@ -421,7 +375,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     setImmediate(finish)
   })
 
-  var server = net.createServer(broker.handle)
+  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
   server.listen(brokerPort, function (err) {
     t.error(err, 'no error')
   })
