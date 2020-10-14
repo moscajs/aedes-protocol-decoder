@@ -26,7 +26,7 @@ test('tcp clients have access to the ipAddress from the socket', function (t) {
     }
   })
 
-  var server = createServer({ trustProxy: false, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { trustProxy: false, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -83,8 +83,7 @@ test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', funct
     }
   })
 
-  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
-
+  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -142,8 +141,7 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', funct
     }
   })
 
-  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
-
+  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -204,7 +202,7 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
     }
   })
 
-  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -244,7 +242,7 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
     }
   })
 
-  var server = createServer({ ws: true, trustProxy: false, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { ws: true, trustProxy: false, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -277,8 +275,7 @@ test('websocket proxied clients have access to the ipAddress from x-real-ip head
     }
   })
 
-  var server = createServer({ ws: true, trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
-
+  var server = createServer(broker, { ws: true, trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -317,7 +314,7 @@ test('websocket proxied clients have access to the ipAddress from x-forwarded-fo
     }
   })
 
-  var server = createServer({ ws: true, trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { ws: true, trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(port, function (err) {
     t.error(err, 'no error')
   })
@@ -378,7 +375,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     }
   })
 
-  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
   server.listen(brokerPort, function (err) {
     t.error(err, 'no error')
   })

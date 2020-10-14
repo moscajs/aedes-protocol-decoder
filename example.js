@@ -126,12 +126,11 @@ function startAedes () {
         client.ip = client.connDetails.ipAddress
       }
       client.close()
-      return done(null, true)
-    },
-    trustProxy: true
+      done(null, true)
+    }
   })
 
-  var server = createServer({ trustProxy: true, extractSocketDetails, protocolDecoder }, broker.handle)
+  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
 
   server.listen(brokerPort, function () {
     console.log('Aedes listening on :', server.address())

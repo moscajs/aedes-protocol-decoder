@@ -42,7 +42,7 @@ var broker = aedes({
 	},
 })
 
-var server = createServer({ trustProxy: true, protocolDecoder }, broker.handle)
+var server = createServer(broker, { trustProxy: true, protocolDecoder })
 server.listen(port, function () {
   console.log('server listening on port', port)
 })
