@@ -356,22 +356,26 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
 
   var broker = aedes({
     preConnect: function (client, packet, done) {
+      function cb () {
+        done(null, true)
+        setImmediate(finish)
+      }
+
       if (client.connDetails.data) {
         const parser = mqttPacket.parser({ protocolVersion: 3 })
         parser.on('packet', (parsedPacket) => {
           t.equal(JSON.stringify(parsedPacket), JSON.stringify(packet))
-          setImmediate(finish)
+          cb()
         })
         parser.on('error', () => {
           t.fail('no valid MQTT packet extracted from TCP buffer')
-          setImmediate(finish)
+          cb()
         })
         parser.parse(client.connDetails.data)
       } else {
         t.fail('no MQTT packet extracted from TCP buffer')
-        setImmediate(finish)
+        cb()
       }
-      done(null, true)
     }
   })
 
