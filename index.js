@@ -93,12 +93,12 @@ function extractProxyDetails (buffer) {
     if (proxyProto && proxyProto.proxyAddress && proxyProto.data) {
       if (proxyProto.proxyAddress instanceof proxyProtocol.IPv4ProxyAddress) {
         details.ipAddress = proxyProto.proxyAddress.sourceAddress.address.join('.')
-        details.port = proxyProto.proxyAddress.sourceAddress.address.port
+        details.port = proxyProto.proxyAddress.sourcePort
         details.serverIpAddress = proxyProto.proxyAddress.destinationAddress.address.join('.')
         details.ipFamily = 4
       } else if (proxyProto.proxyAddress instanceof proxyProtocol.IPv6ProxyAddress) {
         details.ipAddress = parseIpV6Array(proxyProto.proxyAddress.sourceAddress.address)
-        details.port = proxyProto.proxyAddress.sourceAddress.address.port
+        details.port = proxyProto.proxyAddress.sourcePort
         details.serverIpAddress = parseIpV6Array(proxyProto.proxyAddress.destinationAddress.address)
         details.ipFamily = 6
       }
