@@ -73,6 +73,7 @@
     "license-checker": "^25.0.1",
     "mqtt": "^4.0.0",
     "mqtt-packet": "^6.5.0",
+    "nyc": "^15.0.0",
     "pre-commit": "^1.2.2",
     "release-it": "^14.0.2",
     "snazzy": "^8.0.0",
