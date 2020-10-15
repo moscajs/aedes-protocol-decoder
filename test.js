@@ -250,9 +250,9 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
   var client = mqtt.connect(`ws://localhost:${port}`)
 
   function finish () {
+    client.end(true)
     broker.close()
     server.close()
-    client.end()
     t.end()
   }
 })
@@ -289,9 +289,9 @@ test('websocket proxied clients have access to the ipAddress from x-real-ip head
   })
 
   function finish () {
+    client.end(true)
     broker.close()
     server.close()
-    client.end()
     t.end()
   }
 })
@@ -328,9 +328,9 @@ test('websocket proxied clients have access to the ipAddress from x-forwarded-fo
   })
 
   function finish () {
+    client.end(true)
     broker.close()
     server.close()
-    client.end()
     t.end()
   }
 })
@@ -356,27 +356,26 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
 
   var broker = aedes({
     preConnect: function (client, packet, done) {
-      function cb () {
-        done(null, true)
-        setImmediate(finish)
-      }
-
       if (client.connDetails.data) {
         const parser = mqttPacket.parser({ protocolVersion: 3 })
         parser.on('packet', (parsedPacket) => {
           t.equal(JSON.stringify(parsedPacket), JSON.stringify(packet))
-          cb()
+          done(null, true)
         })
         parser.on('error', () => {
           t.fail('no valid MQTT packet extracted from TCP buffer')
-          cb()
+          done(null, true)
         })
         parser.parse(client.connDetails.data)
       } else {
         t.fail('no MQTT packet extracted from TCP buffer')
-        cb()
+        done(null, true)
       }
     }
+  })
+
+  broker.on('clientDisconnect', function () {
+    setImmediate(finish)
   })
 
   var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
@@ -422,7 +421,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
 
   var client = net.connect({
     port: proxyPort,
-    timeout: 200
+    timeout: 150
   }, function () {
     client.write(buf)
   })
