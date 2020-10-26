@@ -1,26 +1,13 @@
 'use strict'
 
-var proxyProtocol = require('proxy-protocol-js')
-var forwarded = require('forwarded')
+const proxyProtocol = require('proxy-protocol-js')
+const forwarded = require('forwarded')
 
-var v1ProxyProtocolSignature = Buffer.from('PROXY ', 'utf8')
-var v2ProxyProtocolSignature = Buffer.from([
-  0x0d,
-  0x0a,
-  0x0d,
-  0x0a,
-  0x00,
-  0x0d,
-  0x0a,
-  0x51,
-  0x55,
-  0x49,
-  0x54,
-  0x0a
-])
+const v1ProxyProtocolSignature = Buffer.from('PROXY ', 'utf8')
+const v2ProxyProtocolSignature = Buffer.from('0d0a0d0a000d0a515549540a', 'hex')
 
 function isValidV1ProxyProtocol (buffer) {
-  for (var i = 0; i < v1ProxyProtocolSignature.length; i++) {
+  for (let i = 0; i < v1ProxyProtocolSignature.length; i++) {
     if (buffer[i] !== v1ProxyProtocolSignature[i]) {
       return false
     }
@@ -29,7 +16,7 @@ function isValidV1ProxyProtocol (buffer) {
 }
 
 function isValidV2ProxyProtocol (buffer) {
-  for (var i = 0; i < v2ProxyProtocolSignature.length; i++) {
+  for (let i = 0; i < v2ProxyProtocolSignature.length; i++) {
     if (buffer[i] !== v2ProxyProtocolSignature[i]) {
       return false
     }
@@ -39,7 +26,7 @@ function isValidV2ProxyProtocol (buffer) {
 
 // from https://stackoverflow.com/questions/57077161/how-do-i-convert-hex-buffer-to-ipv6-in-javascript
 function parseIpV6Array (ip) {
-  var ipHex = Buffer.from(ip).toString('hex')
+  const ipHex = Buffer.from(ip).toString('hex')
   return ipHex.match(/.{1,4}/g)
     .map((val) => val.replace(/^0+/, ''))
     .join(':')
@@ -58,10 +45,10 @@ function getProtoIpFamily (ipFamily) {
 
 function extractHttpDetails (req, socket) {
   const details = {}
-  var headers = req && req.headers ? req.headers : null
+  const headers = req && req.headers ? req.headers : null
   if (headers) {
     if (headers['x-forwarded-for']) {
-      var addresses = forwarded(req)
+      const addresses = forwarded(req)
       details.ipAddress = headers['x-real-ip'] ? headers['x-real-ip'] : addresses[addresses.length - 1]
       details.serverIpAddress = addresses[0]
     }
@@ -77,7 +64,7 @@ function extractHttpDetails (req, socket) {
 
 function extractProxyDetails (buffer) {
   const details = {}
-  var proxyProto
+  let proxyProto
   if (isValidV1ProxyProtocol(buffer)) {
     proxyProto = proxyProtocol.V1BinaryProxyProtocol.parse(buffer)
     if (proxyProto && proxyProto.source && proxyProto.data) {
@@ -103,11 +90,7 @@ function extractProxyDetails (buffer) {
         details.ipFamily = 6
       }
       details.isProxy = 2
-      if (Buffer.isBuffer(proxyProto.data)) {
-        details.data = proxyProto.data
-      } else {
-        details.data = Buffer.from(proxyProto.data)
-      }
+      details.data = Buffer.isBuffer(proxyProto.data) ? proxyProto.data : Buffer.from(proxyProto.data)
     }
   }
   return details
@@ -131,9 +114,9 @@ function extractSocketDetails (socket) {
 }
 
 function protocolDecoder (conn, buffer, req) {
-  var proto = {}
+  let proto = {}
   if (!buffer) return proto
-  var socket = conn.socket || conn
+  const socket = conn.socket || conn
   proto.isProxy = 0
   proto.isWebsocket = false
   proto = { ...proto, ...extractHttpDetails(req, socket), ...extractProxyDetails(buffer) }
