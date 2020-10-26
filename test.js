@@ -2,11 +2,11 @@
 
 var test = require('tape').test
 var aedes = require('aedes')
+var { createServer } = require('aedes-server-factory')
 var mqtt = require('mqtt')
 var mqttPacket = require('mqtt-packet')
 var net = require('net')
 var proxyProtocol = require('proxy-protocol-js')
-var { createServer } = require('aedes-server-factory')
 var { extractSocketDetails, protocolDecoder } = require('./index')
 
 function start (options) {
@@ -402,6 +402,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
   })
 
   var proxyServer = net.createServer()
+
   proxyServer.listen(proxyPort, function (err) {
     t.error(err, 'no error')
   })
@@ -409,10 +410,8 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
   var proxyClient
 
   proxyServer.on('connection', function (socket) {
-    socket.on('end', function (data) {
-      proxyClient.end(data, function () {
-        proxyClient.connected = false
-      })
+    socket.on('end', function () {
+      proxyClient.connected = false
     })
 
     socket.on('data', function (data) {
@@ -450,7 +449,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
 
   var client = net.connect({
     port: proxyPort,
-    timeout: 150
+    timeout: 250
   }, function () {
     client.write(mqttPacket.generate(packet))
   })
@@ -460,7 +459,8 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
   })
 
   function finish () {
+    close(setup)
     proxyServer.close()
-    close(setup, t)
+    t.end()
   }
 })
