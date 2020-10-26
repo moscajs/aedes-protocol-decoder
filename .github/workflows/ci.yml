@@ -4,8 +4,10 @@ on: [push, pull_request]
 
 jobs:
   test:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     strategy:
+      max-parallel: 1
       matrix:
         node-version: [10.x, 12.x, 14.x]
 
@@ -30,7 +32,6 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.github_token }}
-          parallel: true
 
   coverage:
     needs: test
@@ -40,4 +41,3 @@ jobs:
         uses: coverallsapp/github-action@master
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          parallel-finished: true
