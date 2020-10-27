@@ -26,7 +26,7 @@
     "url": "http://github.com/moscajs/aedes-protocol-decoder/issues"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=10"
   },
   "release-it": {
     "github": {
@@ -79,8 +79,7 @@
     "snazzy": "^8.0.0",
     "standard": "^14.3.3",
     "tape": "^4.13.0",
-    "typescript": "^4.0.2",
-    "websocket-stream": "^5.5.2"
+    "typescript": "^4.0.2"
   },
   "dependencies": {
     "forwarded": "^0.1.2",
