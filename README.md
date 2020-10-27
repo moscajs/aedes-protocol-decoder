@@ -14,10 +14,10 @@
 
 Protocol decoder for Aedes MQTT Broker
 
-The purpose of this module is to be used inside [aedes](https://github.com/moscajs/aedes) `decodeProtocol` hook, which is called when aedes instance receives a first valid buffer from client ( before CONNECT packet). The client object state is in default and its connected state is false. 
-The function extract socket details and if aedes `trustProxy` option is set to true, it will first parse http headers (x-real-ip | x-forwarded-for) and proxy protocol (v1 and v2) to retrieve information in client.connDetails.
+The purpose of this module is to be used inside [aedes-server-factory](https://github.com/moscajs/aedes-server-factory) `bindConnection` function, which is called when the server receives a connection from client (before CONNECT packet). The client object state is in default and its connected state is false. 
+The function extract socket details and if `aedes-server-factory` `trustProxy` option is set to true, it will first parse http headers (x-real-ip | x-forwarded-for) and/or proxy protocol (v1 and v2), then passing the informations to `aedes` that will assign them to `client.connDetails`.
 
-The function `protocolDecoder` returns [ConnectionDetails](./types/index.d.ts), if the object contains data property, it will be parsed as an mqtt-packet.
+The function `protocolDecoder` and `extractSocketDetails` returns [ConnectionDetails](./types/index.d.ts), if the object contains `data` property, it will be parsed as an [mqtt-packet](https://github.com/mqttjs/mqtt-packet).
 
 ## Install
 
@@ -30,30 +30,22 @@ npm install aedes-protocol-decoder --save
 ```js
 var aedes = require('aedes')
 var { protocolDecoder } = require('aedes-protocol-decoder')
-var net = require('net')
+var { createServer } = require('aedes-server-factory')
 var port = 1883
 
 var broker = aedes({
-	decodeProtocol: function (client, buffer) {
-	  var proto = protocolDecoder(client, buffer)
-	  return proto
-	},
-	preConnect: function (client, done) {
+	preConnect: function (client, packet, done) {
 	  if (client.connDetails && client.connDetails.ipAddress) {
 	    client.ip = client.connDetails.ipAddress
 	  }
 	  return done(null, true)
 	},
-	trustProxy: true
 })
 
-var server = net.createServer(broker.handle)
-
+var server = createServer(broker, { trustProxy: true, protocolDecoder })
 server.listen(port, function () {
   console.log('server listening on port', port)
 })
-
-
 ```
 
 ## License

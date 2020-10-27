@@ -4,10 +4,11 @@ on: [push, pull_request]
 
 jobs:
   test:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [8.x, 10.x, 12.x, 13.x]
+        node-version: [10.x, 12.x, 14.x]
 
     steps:
       - uses: actions/checkout@v1
@@ -29,7 +30,7 @@ jobs:
       - name: Coveralls Parallel
         uses: coverallsapp/github-action@master
         with:
-          github-token: ${{ secrets.github_token }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           parallel: true
 
   coverage:
