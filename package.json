@@ -75,7 +75,7 @@
     "mqtt-packet": "^6.5.0",
     "nyc": "^15.0.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^14.0.2",
+    "release-it": "^14.2.2",
     "snazzy": "^8.0.0",
     "standard": "^14.3.3",
     "tape": "^4.13.0",
