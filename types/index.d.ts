@@ -1,4 +1,3 @@
-
 /* eslint no-unused-vars: 0 */
 /* eslint no-undef: 0 */
 /* eslint space-infix-ops: 0 */
@@ -18,6 +17,12 @@ export interface ConnectionDetails {
   data?: Buffer
 }
 
-export type ProtocolDecoder = (conn: Stream, buffer: Buffer, req?: any) => ConnectionDetails
-
+export type ProtocolDecoder = (
+  conn: Stream,
+  buffer: Buffer,
+  req?: any
+) => ConnectionDetails
 export type ExtractSocketDetails = (socket: Socket) => ConnectionDetails | null
+
+export declare const protocolDecoder: ProtocolDecoder
+export declare const extractSocketDetails: ExtractSocketDetails
