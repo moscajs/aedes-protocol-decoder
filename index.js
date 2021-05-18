@@ -43,6 +43,16 @@ function getProtoIpFamily (ipFamily) {
   return 0
 }
 
+function getTlsClientCertificate (socket) {
+  /* Get mTLS Client Certificate */
+  const clientCert = socket.getPeerCertificate(true);
+  if(clientCert !== {} && clientCert !== null && clientCert !== undefined){
+    return clientCert;
+  } else {
+    return undefined; 
+  }
+}
+
 function extractHttpDetails (req, socket, proto = {}) {
   const headers = req && req.headers ? req.headers : null
   if (headers) {
@@ -101,11 +111,15 @@ function extractSocketDetails (socket, proto = {}) {
     proto.port = socket._socket.remotePort
     proto.serverIpAddress = socket._socket.address().address
     proto.ipFamily = getProtoIpFamily(socket._socket.remoteFamily)
+    proto.certAuthorized = socket._socket.authorized;
+    proto.cert = getTlsClientCertificate(socket._socket)
   } else if (socket.address) {
     proto.ipAddress = socket.remoteAddress
     proto.port = socket.remotePort
     proto.serverIpAddress = socket.address().address
     proto.ipFamily = getProtoIpFamily(socket.remoteFamily)
+    proto.certAuthorized = socket.authorized;
+    proto.cert = getTlsClientCertificate(socket)
   }
   return proto
 }
