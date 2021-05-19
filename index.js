@@ -110,7 +110,7 @@ function extractSocketDetails (socket, proto = {}) {
     proto.serverIpAddress = socket.address().address
     proto.ipFamily = getProtoIpFamily(socket.remoteFamily)
     proto.certAuthorized = socket.authorized;
-    proto.cert = getTlsClientCertificate(socket)
+    proto.cert = socket.getPeerCertificate(true)
   }
   return proto
 }
