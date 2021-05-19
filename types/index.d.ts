@@ -11,7 +11,9 @@ export interface ConnectionDetails {
   ipAddress: string
   port: number
   ipFamily: number
-  serverIpAddress: string
+  serverIpAddress: string,
+  certAuthorized: boolean,
+  cert: any,  // getPeerCertificate can return an empty object or null
   isWebsocket: boolean
   isProxy: number
   data?: Buffer
