@@ -43,15 +43,6 @@ function getProtoIpFamily (ipFamily) {
   return 0
 }
 
-function getTlsClientCertificate (socket) {
-  /* Get mTLS Client Certificate */
-  const clientCert = socket.getPeerCertificate(true);
-  if(clientCert !== {} && clientCert !== null && clientCert !== undefined){
-    return clientCert;
-  } else {
-    return undefined; 
-  }
-}
 
 function extractHttpDetails (req, socket, proto = {}) {
   const headers = req && req.headers ? req.headers : null
