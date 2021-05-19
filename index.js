@@ -103,7 +103,7 @@ function extractSocketDetails (socket, proto = {}) {
     proto.serverIpAddress = socket._socket.address().address
     proto.ipFamily = getProtoIpFamily(socket._socket.remoteFamily)
     proto.certAuthorized = socket._socket.authorized;
-    proto.cert = getTlsClientCertificate(socket._socket)
+    proto.cert = socket._socket.getPeerCertificate(true)
   } else if (socket.address) {
     proto.ipAddress = socket.remoteAddress
     proto.port = socket.remotePort
