@@ -6,6 +6,7 @@
 
 import { Socket } from 'net'
 import { Stream } from 'stream'
+import { PeerCertificate } from 'tls'
 
 export interface ConnectionDetails {
   ipAddress: string
@@ -14,6 +15,8 @@ export interface ConnectionDetails {
   serverIpAddress: string
   isWebsocket: boolean
   isProxy: number
+  certAuthorized?: boolean,
+  cert?: PeerCertificate | {} | null,
   data?: Buffer
 }
 
