@@ -3,6 +3,7 @@
 var test = require('tape').test
 var aedes = require('aedes')
 var { createServer } = require('aedes-server-factory')
+var fs = require('fs')
 var mqtt = require('mqtt')
 var mqttPacket = require('mqtt-packet')
 var net = require('net')
@@ -463,4 +464,96 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     proxyServer.close()
     t.end()
   }
+})
+
+test('tls over tcp clients have access to the certificate from the socket', function (t) {
+  t.plan(3)
+
+  var port = 8883
+  var setup = start({
+    broker: {
+      preConnect: function (client, packet, done) {
+        t.equal(true, client.connDetails.certAuthorized)
+        t.equal('Mosca', client.connDetails.cert.issuer.O)
+        done(null, true)
+        close(setup, t)
+      }
+    },
+    server: {
+      tls: {
+        key: fs.readFileSync('./tls/server.key'),
+        cert: fs.readFileSync('./tls/server-crt.pem'),
+        ca: fs.readFileSync('./tls/ec-cacert.pem'),
+        requestCert: true,
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      extractSocketDetails,
+      protocolDecoder
+    },
+    client: {
+      port,
+      keepalive: 0,
+      clientId: 'mqtt-client',
+      clean: false,
+      protocol: 'mqtts',
+      key: fs.readFileSync('./tls/client-1.key'),
+      cert: fs.readFileSync('./tls/client-1-crt.pem'),
+      ca: fs.readFileSync('./tls/ec-cacert.pem')
+    }
+  })
+
+  setup.server.listen(port, function (err) {
+    t.error(err, 'no error')
+  })
+})
+
+test('tls over ws clients have access to the certificate from the socket', function (t) {
+  t.plan(3)
+
+  var clientIp = '192.168.0.140'
+  var port = 8883
+  var setup = start({
+    broker: {
+      preConnect: function (client, packet, done) {
+        t.equal(true, client.connDetails.certAuthorized)
+        t.equal('Mosca', client.connDetails.cert.issuer.O)
+        done(null, true)
+        close(setup, t)
+      }
+    },
+    server: {
+      ws: true,
+      trustProxy: true,
+      https: {
+        key: fs.readFileSync('./tls/server.key'),
+        cert: fs.readFileSync('./tls/server-crt.pem'),
+        ca: fs.readFileSync('./tls/ec-cacert.pem'),
+        requestCert: true,
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      extractSocketDetails,
+      protocolDecoder
+    },
+    client: {
+      port,
+      keepalive: 0,
+      clientId: 'mqtt-client',
+      clean: false,
+      protocol: 'wss',
+      key: fs.readFileSync('./tls/client-1.key'),
+      cert: fs.readFileSync('./tls/client-1-crt.pem'),
+      ca: fs.readFileSync('./tls/ec-cacert.pem'),
+      wsOptions: {
+        headers: {
+          'X-Forwarded-For': clientIp
+        }
+      }
+    }
+  })
+
+  setup.server.listen(port, function (err) {
+    t.error(err, 'no error')
+  })
 })
