@@ -1,18 +1,19 @@
 'use strict'
 
-var test = require('tape').test
-var aedes = require('aedes')
-var { createServer } = require('aedes-server-factory')
-var mqtt = require('mqtt')
-var mqttPacket = require('mqtt-packet')
-var net = require('net')
-var proxyProtocol = require('proxy-protocol-js')
-var { extractSocketDetails, protocolDecoder } = require('./index')
+const test = require('tape').test
+const aedes = require('aedes')
+const { createServer } = require('aedes-server-factory')
+const fs = require('fs')
+const mqtt = require('mqtt')
+const mqttPacket = require('mqtt-packet')
+const net = require('net')
+const proxyProtocol = require('proxy-protocol-js')
+const { extractSocketDetails, protocolDecoder } = require('../index')
 
 function start (options) {
-  var broker
-  var server
-  var client
+  let broker
+  let server
+  let client
 
   if (options.broker) {
     broker = aedes(options.broker)
@@ -43,7 +44,7 @@ function close ({ broker, client, server }, t) {
 }
 
 function generateProxyConnectPacket (clientIp, serverPort, proxyVersion = 1, ipFamily = 4) {
-  var packet = {
+  const packet = {
     cmd: 'connect',
     protocolId: 'MQTT',
     protocolVersion: 4,
@@ -53,8 +54,8 @@ function generateProxyConnectPacket (clientIp, serverPort, proxyVersion = 1, ipF
   }
 
   if (proxyVersion === 1 && ipFamily === 4) {
-    var src = new proxyProtocol.Peer(clientIp, 12345)
-    var dst = new proxyProtocol.Peer('127.0.0.1', serverPort)
+    const src = new proxyProtocol.Peer(clientIp, 12345)
+    const dst = new proxyProtocol.Peer('127.0.0.1', serverPort)
     return new proxyProtocol.V1BinaryProxyProtocol(
       proxyProtocol.INETProtocol.TCP4,
       src,
@@ -92,8 +93,8 @@ function generateProxyConnectPacket (clientIp, serverPort, proxyVersion = 1, ipF
 test('tcp clients have access to the ipAddress from the socket', function (t) {
   t.plan(2)
 
-  var port = 4883
-  var setup = start({
+  const port = 4883
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client && client.connDetails && client.connDetails.ipAddress) {
@@ -125,10 +126,10 @@ test('tcp clients have access to the ipAddress from the socket', function (t) {
 test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', function (t) {
   t.plan(2)
 
-  var port = 4883
-  var clientIp = '192.168.0.140'
+  const port = 4883
+  const clientIp = '192.168.0.140'
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -150,8 +151,8 @@ test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', funct
     t.error(err, 'no error')
   })
 
-  var proxyPacket = generateProxyConnectPacket(clientIp, port, 1, 4)
-  var client = net.connect({
+  const proxyPacket = generateProxyConnectPacket(clientIp, port, 1, 4)
+  const client = net.connect({
     port,
     timeout: 0
   }, function () {
@@ -167,10 +168,10 @@ test('tcp proxied (protocol v1) clients have access to the ipAddress(v4)', funct
 test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', function (t) {
   t.plan(2)
 
-  var port = 4883
-  var clientIp = '192.168.0.140'
+  const port = 4883
+  const clientIp = '192.168.0.140'
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -192,8 +193,8 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', funct
     t.error(err, 'no error')
   })
 
-  var proxyPacket = generateProxyConnectPacket(clientIp, port, 2, 4)
-  var client = net.createConnection(
+  const proxyPacket = generateProxyConnectPacket(clientIp, port, 2, 4)
+  const client = net.createConnection(
     {
       port,
       timeout: 0
@@ -211,11 +212,11 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v4)', funct
 test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', function (t) {
   t.plan(2)
 
-  var port = 4883
-  var clientIpArray = [0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 192, 168, 1, 128]
-  var clientIp = '::ffff:c0a8:180:'
+  const port = 4883
+  const clientIpArray = [0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 192, 168, 1, 128]
+  const clientIp = '::ffff:c0a8:180:'
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -237,8 +238,8 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
     t.error(err, 'no error')
   })
 
-  var proxyPacket = generateProxyConnectPacket(clientIpArray, port, 2, 6)
-  var client = net.createConnection(
+  const proxyPacket = generateProxyConnectPacket(clientIpArray, port, 2, 6)
+  const client = net.createConnection(
     {
       port,
       timeout: 0
@@ -256,10 +257,10 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
 test('websocket clients have access to the ipAddress from the socket (if no ip header)', function (t) {
   t.plan(2)
 
-  var clientIp = '::ffff:127.0.0.1'
-  var port = 4883
+  const clientIp = '::ffff:127.0.0.1'
+  const port = 4883
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -286,10 +287,10 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
 test('websocket proxied clients have access to the ipAddress from x-real-ip header', function (t) {
   t.plan(2)
 
-  var clientIp = '192.168.0.140'
-  var port = 4883
+  const clientIp = '192.168.0.140'
+  const port = 4883
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -325,10 +326,10 @@ test('websocket proxied clients have access to the ipAddress from x-real-ip head
 test('websocket proxied clients have access to the ipAddress from x-forwarded-for header', function (t) {
   t.plan(2)
 
-  var clientIp = '192.168.0.140'
-  var port = 4883
+  const clientIp = '192.168.0.140'
+  const port = 4883
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
@@ -364,11 +365,11 @@ test('websocket proxied clients have access to the ipAddress from x-forwarded-fo
 test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy header', function (t) {
   t.plan(3)
 
-  var brokerPort = 4883
-  var proxyPort = 4884
-  var clientIp = '192.168.0.140'
+  const brokerPort = 4883
+  const proxyPort = 4884
+  const clientIp = '192.168.0.140'
 
-  var setup = start({
+  const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client.connDetails.data) {
@@ -401,13 +402,12 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     t.error(err, 'no error')
   })
 
-  var proxyServer = net.createServer()
+  const proxyServer = net.createServer()
+  let proxyClient
 
   proxyServer.listen(proxyPort, function (err) {
     t.error(err, 'no error')
   })
-
-  var proxyClient
 
   proxyServer.on('connection', function (socket) {
     socket.on('end', function () {
@@ -418,9 +418,9 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
       if (proxyClient && proxyClient.connected) {
         proxyClient.write(data)
       } else {
-        var src = new proxyProtocol.Peer(clientIp, 12345)
-        var dst = new proxyProtocol.Peer('127.0.0.1', proxyPort)
-        var proxyPacket = new proxyProtocol.V1BinaryProxyProtocol(
+        const src = new proxyProtocol.Peer(clientIp, 12345)
+        const dst = new proxyProtocol.Peer('127.0.0.1', proxyPort)
+        const proxyPacket = new proxyProtocol.V1BinaryProxyProtocol(
           proxyProtocol.INETProtocol.TCP4,
           src,
           dst,
@@ -438,7 +438,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     })
   })
 
-  var packet = {
+  const packet = {
     cmd: 'connect',
     protocolId: 'MQIsdp',
     protocolVersion: 3,
@@ -447,7 +447,7 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     keepalive: 0
   }
 
-  var client = net.connect({
+  const client = net.connect({
     port: proxyPort,
     timeout: 250
   }, function () {
@@ -463,4 +463,96 @@ test('tcp proxied (protocol v1) clients buffer contains MQTT packet and proxy he
     proxyServer.close()
     t.end()
   }
+})
+
+test('tls over tcp clients have access to the certificate from the socket', function (t) {
+  t.plan(3)
+
+  const port = 8883
+  const setup = start({
+    broker: {
+      preConnect: function (client, packet, done) {
+        t.equal(true, client.connDetails.certAuthorized)
+        t.equal('Mosca', client.connDetails.cert.issuer.O)
+        done(null, true)
+        close(setup, t)
+      }
+    },
+    server: {
+      tls: {
+        key: fs.readFileSync('./test/fixtures/server.key'),
+        cert: fs.readFileSync('./test/fixtures/server-crt.pem'),
+        ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
+        requestCert: true,
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      extractSocketDetails,
+      protocolDecoder
+    },
+    client: {
+      port,
+      keepalive: 0,
+      clientId: 'mqtt-client',
+      clean: false,
+      protocol: 'mqtts',
+      key: fs.readFileSync('./test/fixtures/client-1.key'),
+      cert: fs.readFileSync('./test/fixtures/client-1-crt.pem'),
+      ca: fs.readFileSync('./test/fixtures/ec-cacert.pem')
+    }
+  })
+
+  setup.server.listen(port, function (err) {
+    t.error(err, 'no error')
+  })
+})
+
+test('tls over ws clients have access to the certificate from the socket', function (t) {
+  t.plan(3)
+
+  const clientIp = '192.168.0.140'
+  const port = 8883
+  const setup = start({
+    broker: {
+      preConnect: function (client, packet, done) {
+        t.equal(true, client.connDetails.certAuthorized)
+        t.equal('Mosca', client.connDetails.cert.issuer.O)
+        done(null, true)
+        close(setup, t)
+      }
+    },
+    server: {
+      ws: true,
+      trustProxy: true,
+      https: {
+        key: fs.readFileSync('./test/fixtures/server.key'),
+        cert: fs.readFileSync('./test/fixtures/server-crt.pem'),
+        ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
+        requestCert: true,
+        rejectUnauthorized: true,
+        minVersion: 'TLSv1.2'
+      },
+      extractSocketDetails,
+      protocolDecoder
+    },
+    client: {
+      port,
+      keepalive: 0,
+      clientId: 'mqtt-client',
+      clean: false,
+      protocol: 'wss',
+      key: fs.readFileSync('./test/fixtures/client-1.key'),
+      cert: fs.readFileSync('./test/fixtures/client-1-crt.pem'),
+      ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
+      wsOptions: {
+        headers: {
+          'X-Forwarded-For': clientIp
+        }
+      }
+    }
+  })
+
+  setup.server.listen(port, function (err) {
+    t.error(err, 'no error')
+  })
 })

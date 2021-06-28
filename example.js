@@ -1,13 +1,13 @@
 'use strict'
 
-var aedes = require('aedes')
-var mqttPacket = require('mqtt-packet')
-var net = require('net')
-var proxyProtocol = require('proxy-protocol-js')
-var { createServer } = require('aedes-server-factory')
-var { extractSocketDetails, protocolDecoder } = require('./index')
+const aedes = require('aedes')
+const mqttPacket = require('mqtt-packet')
+const net = require('net')
+const proxyProtocol = require('proxy-protocol-js')
+const { createServer } = require('aedes-server-factory')
+const { extractSocketDetails, protocolDecoder } = require('./index')
 
-var brokerPort = 4883
+const brokerPort = 4883
 
 // from https://stackoverflow.com/questions/57077161/how-do-i-convert-hex-buffer-to-ipv6-in-javascript
 function parseIpV6 (ip) {
@@ -19,7 +19,7 @@ function parseIpV6 (ip) {
 }
 
 function sendProxyPacket (version = 1, ipFamily = 4) {
-  var packet = {
+  const packet = {
     cmd: 'connect',
     protocolId: 'MQTT',
     protocolVersion: 4,
@@ -27,11 +27,11 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
     clientId: `my-client-${version}`,
     keepalive: 0
   }
-  var hostIpV4 = '0.0.0.0'
-  var clientIpV4 = '192.168.1.128'
-  var hostIpV6 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-  var clientIpV6 = [0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 192, 168, 1, 128]
-  var protocol
+  const hostIpV4 = '0.0.0.0'
+  const clientIpV4 = '192.168.1.128'
+  const hostIpV6 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  const clientIpV6 = [0, 0, 0, 0, 0, 0, 0, 0, 255, 255, 192, 168, 1, 128]
+  let protocol
   if (version === 1) {
     if (ipFamily === 4) {
       protocol = new proxyProtocol.V1BinaryProxyProtocol(
@@ -76,16 +76,16 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
     }
   }
 
-  var parsedProto = version === 1
+  const parsedProto = version === 1
     ? proxyProtocol.V1BinaryProxyProtocol.parse(protocol)
     : proxyProtocol.V2ProxyProtocol.parse(protocol)
   // console.log(parsedProto)
 
-  var dstPort = version === 1
+  const dstPort = version === 1
     ? parsedProto.destination.port
     : parsedProto.proxyAddress.destinationPort
 
-  var dstHost
+  let dstHost
   if (version === 1) {
     if (ipFamily === 4) {
       dstHost = parsedProto.destination.ipAddress
@@ -103,7 +103,7 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
   }
 
   console.log('Connection to :', dstHost, dstPort)
-  var mqttConn = net.createConnection(
+  const mqttConn = net.createConnection(
     {
       port: dstPort,
       host: dstHost,
@@ -111,7 +111,7 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
     }
   )
 
-  var data = protocol
+  const data = protocol
 
   mqttConn.on('timeout', function () {
     mqttConn.end(data)
@@ -119,7 +119,7 @@ function sendProxyPacket (version = 1, ipFamily = 4) {
 }
 
 function startAedes () {
-  var broker = aedes({
+  const broker = aedes({
     preConnect: function (client, packet, done) {
       console.log('Aedes preConnect check client ip:', client.connDetails)
       if (client.connDetails && client.connDetails.ipAddress) {
@@ -130,7 +130,7 @@ function startAedes () {
     }
   })
 
-  var server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
+  const server = createServer(broker, { trustProxy: true, extractSocketDetails, protocolDecoder })
 
   server.listen(brokerPort, function () {
     console.log('Aedes listening on :', server.address())

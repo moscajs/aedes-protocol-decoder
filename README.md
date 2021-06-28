@@ -17,6 +17,8 @@ Protocol decoder for Aedes MQTT Broker
 The purpose of this module is to be used inside [aedes-server-factory](https://github.com/moscajs/aedes-server-factory) `bindConnection` function, which is called when the server receives a connection from client (before CONNECT packet). The client object state is in default and its connected state is false. 
 The function extract socket details and if `aedes-server-factory` `trustProxy` option is set to true, it will first parse http headers (x-real-ip | x-forwarded-for) and/or proxy protocol (v1 and v2), then passing the informations to `aedes` that will assign them to `client.connDetails`.
 
+Additionally, if the current socket is a [TLS](https://nodejs.org/api/tls.html#tls_class_tls_tlssocket) socket, the module will extract the authorization status and the full certificate chain.
+
 The function `protocolDecoder` and `extractSocketDetails` returns [ConnectionDetails](./types/index.d.ts), if the object contains `data` property, it will be parsed as an [mqtt-packet](https://github.com/mqttjs/mqtt-packet).
 
 ## Install

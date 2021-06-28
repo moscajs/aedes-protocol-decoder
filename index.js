@@ -94,6 +94,15 @@ function extractProxyDetails (buffer, proto = {}) {
   return proto
 }
 
+function extractSocketTLSDetails (socket, proto = {}) {
+  socket = socket._socket || socket
+  if (socket.getPeerCertificate && typeof socket.getPeerCertificate === 'function') {
+    proto.certAuthorized = socket.authorized
+    proto.cert = socket.getPeerCertificate(true)
+  }
+  return proto
+}
+
 function extractSocketDetails (socket, proto = {}) {
   if (socket._socket && socket._socket.address) {
     proto.isWebsocket = true
@@ -107,6 +116,7 @@ function extractSocketDetails (socket, proto = {}) {
     proto.serverIpAddress = socket.address().address
     proto.ipFamily = getProtoIpFamily(socket.remoteFamily)
   }
+  extractSocketTLSDetails(socket, proto)
   return proto
 }
 
@@ -118,9 +128,10 @@ function protocolDecoder (conn, buffer, req) {
   proto.isWebsocket = false
   extractHttpDetails(req, socket, proto)
   extractProxyDetails(buffer, proto)
-
   if (!proto.ipAddress) {
     extractSocketDetails(socket, proto)
+  } else {
+    extractSocketTLSDetails(socket, proto)
   }
 
   return proto
