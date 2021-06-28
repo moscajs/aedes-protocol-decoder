@@ -8,7 +8,7 @@ const mqtt = require('mqtt')
 const mqttPacket = require('mqtt-packet')
 const net = require('net')
 const proxyProtocol = require('proxy-protocol-js')
-const { extractSocketDetails, protocolDecoder } = require('./index')
+const { extractSocketDetails, protocolDecoder } = require('../index')
 
 function start (options) {
   let broker
@@ -480,9 +480,9 @@ test('tls over tcp clients have access to the certificate from the socket', func
     },
     server: {
       tls: {
-        key: fs.readFileSync('./tls/server.key'),
-        cert: fs.readFileSync('./tls/server-crt.pem'),
-        ca: fs.readFileSync('./tls/ec-cacert.pem'),
+        key: fs.readFileSync('./test/fixtures/server.key'),
+        cert: fs.readFileSync('./test/fixtures/server-crt.pem'),
+        ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
         requestCert: true,
         rejectUnauthorized: true,
         minVersion: 'TLSv1.2'
@@ -496,9 +496,9 @@ test('tls over tcp clients have access to the certificate from the socket', func
       clientId: 'mqtt-client',
       clean: false,
       protocol: 'mqtts',
-      key: fs.readFileSync('./tls/client-1.key'),
-      cert: fs.readFileSync('./tls/client-1-crt.pem'),
-      ca: fs.readFileSync('./tls/ec-cacert.pem')
+      key: fs.readFileSync('./test/fixtures/client-1.key'),
+      cert: fs.readFileSync('./test/fixtures/client-1-crt.pem'),
+      ca: fs.readFileSync('./test/fixtures/ec-cacert.pem')
     }
   })
 
@@ -525,9 +525,9 @@ test('tls over ws clients have access to the certificate from the socket', funct
       ws: true,
       trustProxy: true,
       https: {
-        key: fs.readFileSync('./tls/server.key'),
-        cert: fs.readFileSync('./tls/server-crt.pem'),
-        ca: fs.readFileSync('./tls/ec-cacert.pem'),
+        key: fs.readFileSync('./test/fixtures/server.key'),
+        cert: fs.readFileSync('./test/fixtures/server-crt.pem'),
+        ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
         requestCert: true,
         rejectUnauthorized: true,
         minVersion: 'TLSv1.2'
@@ -541,9 +541,9 @@ test('tls over ws clients have access to the certificate from the socket', funct
       clientId: 'mqtt-client',
       clean: false,
       protocol: 'wss',
-      key: fs.readFileSync('./tls/client-1.key'),
-      cert: fs.readFileSync('./tls/client-1-crt.pem'),
-      ca: fs.readFileSync('./tls/ec-cacert.pem'),
+      key: fs.readFileSync('./test/fixtures/client-1.key'),
+      cert: fs.readFileSync('./test/fixtures/client-1-crt.pem'),
+      ca: fs.readFileSync('./test/fixtures/ec-cacert.pem'),
       wsOptions: {
         headers: {
           'X-Forwarded-For': clientIp
