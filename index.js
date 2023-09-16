@@ -1,5 +1,25 @@
 'use strict'
 
+/**
+ * @typedef ConnectionDetails
+ * @property {string} ipAddress
+ * @property {number} port
+ * @property {string} serverIpAddress
+ * @property {number} serverPort
+ * @property {4 | 6 | 0} ipFamily
+ * @property {boolean} isWebsocket
+ * @property {boolean} isTls
+ * @property {0 | 1 | 2} isProxy
+ * @property {boolean | undefined} certAuthorized
+ * @property {object | import('tls').PeerCertificate | undefined} cert
+ * @property {Buffer | undefined} data
+ */
+
+/**
+ * @typedef HttpConnection
+ * @property { import('net').Socket } _socket
+ */
+
 const proxyProtocol = require('proxy-protocol-js')
 const forwarded = require('forwarded')
 
@@ -43,6 +63,14 @@ function getProtoIpFamily (ipFamily) {
   return 0
 }
 
+/**
+ *
+ * @param {import('http').IncomingMessage} req
+ * @param {HttpConnection} socket
+ * @param {ConnectionDetails} proto
+ * @returns {ConnectionDetails}
+ * @todo replace socket arg by req.socket ?
+ */
 function extractHttpDetails (req, socket, proto = {}) {
   const headers = req && req.headers ? req.headers : null
   if (headers) {
@@ -54,6 +82,8 @@ function extractHttpDetails (req, socket, proto = {}) {
     if (headers['x-real-ip']) {
       proto.ipAddress = headers['x-real-ip']
     }
+    // ? should we try to parse req.url to get the port first and then fallback to socket.address()?.port ?
+    proto.serverPort = socket._socket.address()?.port
     proto.port = socket._socket.remotePort
     proto.ipFamily = getProtoIpFamily(socket._socket.remoteFamily)
     proto.isWebsocket = true
@@ -61,6 +91,12 @@ function extractHttpDetails (req, socket, proto = {}) {
   return proto
 }
 
+/**
+ *
+ * @param {Buffer} buffer
+ * @param {ConnectionDetails} proto
+ * @returns {ConnectionDetails}
+ */
 function extractProxyDetails (buffer, proto = {}) {
   let proxyProto
   if (isValidV1ProxyProtocol(buffer)) {
@@ -70,6 +106,7 @@ function extractProxyDetails (buffer, proto = {}) {
       proto.ipAddress = proxyProto.source.ipAddress
       proto.port = proxyProto.source.port
       proto.serverIpAddress = proxyProto.destination.ipAddress
+      proto.serverPort = proxyProto.destination.port
       proto.data = proxyProto.data
       proto.isProxy = 1
     }
@@ -80,11 +117,13 @@ function extractProxyDetails (buffer, proto = {}) {
         proto.ipAddress = proxyProto.proxyAddress.sourceAddress.address.join('.')
         proto.port = proxyProto.proxyAddress.sourcePort
         proto.serverIpAddress = proxyProto.proxyAddress.destinationAddress.address.join('.')
+        proto.serverPort = proxyProto.proxyAddress.destinationPort
         proto.ipFamily = 4
       } else if (proxyProto.proxyAddress instanceof proxyProtocol.IPv6ProxyAddress) {
         proto.ipAddress = parseIpV6Array(proxyProto.proxyAddress.sourceAddress.address)
         proto.port = proxyProto.proxyAddress.sourcePort
         proto.serverIpAddress = parseIpV6Array(proxyProto.proxyAddress.destinationAddress.address)
+        proto.serverPort = proxyProto.proxyAddress.destinationPort
         proto.ipFamily = 6
       }
       proto.isProxy = 2
@@ -94,38 +133,62 @@ function extractProxyDetails (buffer, proto = {}) {
   return proto
 }
 
+/**
+ *
+ * @param {import('net').Socket | HttpConnection} socket
+ * @param {ConnectionDetails} proto
+ * @returns {ConnectionDetails}
+ */
 function extractSocketTLSDetails (socket, proto = {}) {
   socket = socket._socket || socket
   if (socket.getPeerCertificate && typeof socket.getPeerCertificate === 'function') {
     proto.certAuthorized = socket.authorized
     proto.cert = socket.getPeerCertificate(true)
+    proto.isTls = true
   }
   return proto
 }
 
+/**
+ *
+ * @param {import('net').Socket | HttpConnection} socket
+ * @param {ConnectionDetails} proto
+ * @returns {ConnectionDetails}
+ */
 function extractSocketDetails (socket, proto = {}) {
   if (socket._socket && socket._socket.address) {
     proto.isWebsocket = true
     proto.ipAddress = socket._socket.remoteAddress
     proto.port = socket._socket.remotePort
     proto.serverIpAddress = socket._socket.address().address
+    proto.serverPort = socket._socket.address().port
     proto.ipFamily = getProtoIpFamily(socket._socket.remoteFamily)
   } else if (socket.address) {
     proto.ipAddress = socket.remoteAddress
     proto.port = socket.remotePort
     proto.serverIpAddress = socket.address().address
+    proto.serverPort = socket.address().port
     proto.ipFamily = getProtoIpFamily(socket.remoteFamily)
   }
   extractSocketTLSDetails(socket, proto)
   return proto
 }
 
+/**
+ *
+ * @param {import('aedes').Connection} conn
+ * @param {Buffer} buffer
+ * @param {import('http').IncomingMessage} req
+ * @returns {ConnectionDetails}
+ */
 function protocolDecoder (conn, buffer, req) {
-  const proto = {}
+  const proto = {
+    isProxy: 0,
+    isWebsocket: false,
+    isTls: false
+  }
   if (!buffer) return proto
   const socket = conn.socket || conn
-  proto.isProxy = 0
-  proto.isWebsocket = false
   extractHttpDetails(req, socket, proto)
   extractProxyDetails(buffer, proto)
   if (!proto.ipAddress) {
