@@ -51,10 +51,10 @@
     "decoder",
     "parser"
   ],
-  "author": "Get Large <https://github.com/getlarge>",
+  "author": "Edouard Maleix <https://github.com/getlarge>",
   "contributors": [
     {
-      "name": "Get Large",
+      "name": "Edouard Maleix",
       "url": "https://github.com/getlarge"
     },
     {
@@ -64,25 +64,25 @@
   ],
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^14.0.1",
-    "@typescript-eslint/eslint-plugin": "^4.28.0",
-    "@typescript-eslint/parser": "^4.28.0",
-    "aedes": "^0.46.0",
-    "aedes-server-factory": "0.1.3",
-    "faucet": "0.0.1",
+    "@types/node": "^18.17.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.0",
+    "@typescript-eslint/parser": "^6.7.0",
+    "aedes": "^0.50.0",
+    "aedes-server-factory": "0.2.1",
+    "faucet": "0.0.4",
     "license-checker": "^25.0.1",
-    "mqtt": "^4.2.8",
-    "mqtt-packet": "^7.0.0",
+    "mqtt": "^5.0.5",
+    "mqtt-packet": "^8.2.0",
     "nyc": "^15.1.0",
     "pre-commit": "^1.2.2",
-    "release-it": "^14.10.0",
+    "release-it": "^16.1.5",
     "snazzy": "^9.0.0",
-    "standard": "^16.0.3",
-    "tape": "^5.2.0",
-    "typescript": "^4.3.4"
+    "standard": "^17.1.0",
+    "tape": "^5.6.6",
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "forwarded": "^0.2.0",
-    "proxy-protocol-js": "^4.0.5"
+    "proxy-protocol-js": "^4.0.6"
   }
 }
