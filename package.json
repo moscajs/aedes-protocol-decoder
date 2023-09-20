@@ -1,6 +1,6 @@
 {
   "name": "aedes-protocol-decoder",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Aedes plugin to decode connection frame and validate proxies",
   "main": "index.js",
   "types": "types/index.d.ts",
