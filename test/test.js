@@ -94,12 +94,13 @@ test('tcp clients have access to the ipAddress from the socket', function (t) {
   t.plan(2)
 
   const port = 4883
+  const clientIps = ['::ffff:127.0.0.1', '::1']
   const setup = start({
     broker: {
       preConnect: function (client, packet, done) {
         if (client && client.connDetails && client.connDetails.ipAddress) {
           client.ip = client.connDetails.ipAddress
-          t.equal('::ffff:127.0.0.1', client.ip)
+          t.equal(clientIps.includes(client.ip), true)
         } else {
           t.fail('no ip address present')
         }
@@ -257,7 +258,8 @@ test('tcp proxied (protocol v2) clients have access to the ipAddress(v6)', funct
 test('websocket clients have access to the ipAddress from the socket (if no ip header)', function (t) {
   t.plan(2)
 
-  const clientIp = '::ffff:127.0.0.1'
+  // local client IPs might resolve slightly differently
+  const clientIps = ['::ffff:127.0.0.1', '::1']
   const port = 4883
 
   const setup = start({
@@ -265,7 +267,7 @@ test('websocket clients have access to the ipAddress from the socket (if no ip h
       preConnect: function (client, packet, done) {
         if (client.connDetails && client.connDetails.ipAddress) {
           client.ip = client.connDetails.ipAddress
-          t.equal(clientIp, client.ip)
+          t.equal(clientIps.includes(client.ip), true)
         } else {
           t.fail('no ip address present')
         }

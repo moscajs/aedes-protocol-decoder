@@ -13,8 +13,10 @@ export interface ConnectionDetails {
   port: number
   ipFamily: number
   serverIpAddress: string
+  serverPort: number
   isWebsocket: boolean
   isProxy: number
+  isTls: boolean
   certAuthorized?: boolean,
   cert?: PeerCertificate | {} | null,
   data?: Buffer
